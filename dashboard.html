@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthLink - Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>HealthLink Dashboard</h1>
+            <div class="user-info">
+                <span>Welcome, {{ session.username }}!</span>
+                <a href="/logout" class="btn btn-secondary">Logout</a>
+            </div>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h3>Quick Actions</h3>
+                <a href="/appointment" class="btn">Book Appointment</a>
+                {% if session.role == 'patient' %}
+                    <a href="/vitals" class="btn">Record Vitals</a>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <h3>Upcoming Appointments</h3>
+                {% if appointments %}
+                    <ul>
+                        {% for appointment in appointments %}
+                            <li>
+                                {% if session.role == 'patient' %}
+                                    Doctor: {{ appointment.doctor_name }}
+                                {% else %}
+                                    Patient: {{ appointment.patient_name }}
+                                {% endif %}
+                                <br>
+                                Date: {{ appointment.appointment_date.strftime('%Y-%m-%d %H:%M') }}
+                                <br>
+                                Status: {{ appointment.status }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No upcoming appointments</p>
+                {% endif %}
+            </div>
+
+            {% if session.role == 'patient' %}
+                <div class="card">
+                    <h3>Recent Vitals</h3>
+                    {% if vitals %}
+                        <ul>
+                            {% for vital in vitals %}
+                                <li>
+                                    Date: {{ vital.recorded_at.strftime('%Y-%m-%d') }}
+                                    {% if vital.blood_pressure %}BP: {{ vital.blood_pressure }}{% endif %}
+                                    {% if vital.heart_rate %}HR: {{ vital.heart_rate }}{% endif %}
+                                    {% if vital.temperature %}Temp: {{ vital.temperature }}°F{% endif %}
+                                    {% if vital.weight %}Weight: {{ vital.weight }} lbs{% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No vitals recorded yet</p>
+                    {% endif %}
+                </div>
+
+                <div class="card">
+                    <h3>Health Alerts</h3>
+                    {% if alerts %}
+                        {% for alert in alerts %}
+                            <div class="alert alert-warning">
+                                <strong>{{ alert.alert_type }}</strong><br>
+                                {{ alert.message }}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>No new alerts</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
